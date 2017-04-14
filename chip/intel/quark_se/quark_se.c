@@ -140,6 +140,19 @@ void soc_init(void)
 		pr_info("error configure gpio\n");
 	usb_gpio = soc_gpio_read(0, 7);
 
+	SET_PIN_MODE(26, QRK_PMUX_SEL_MODEB);
+	gpio_cfg_data_t pin_cfg_led = {
+		.gpio_type = GPIO_OUTPUT,
+		.int_type = LEVEL,
+		.int_polarity = ACTIVE_LOW,
+		.int_debounce = DEBOUNCE_OFF,
+		.int_ls_sync = LS_SYNC_OFF,
+		.gpio_cb = NULL
+	};
+	soc_gpio_set_config(0, 26, &pin_cfg_led);
+
+	soc_gpio_write(0, 26, 1);
+
 	pr_info("usb status: %d\n", usb_gpio);
 #endif
 
@@ -150,6 +163,34 @@ void soc_init(void)
 	swd_init();
 	swd_debug_mode_reset_to_normal();
 #endif
+}
+
+volatile uint8_t ledKeepValue = 0;
+volatile uint8_t ledTargetValue = 20;
+volatile int8_t ledDirection = 1;
+volatile bool ledStatus = 0;
+
+inline void LED_toggle() {
+	soc_gpio_write(0, 26, ledStatus);
+	ledStatus = !ledStatus;
+}
+
+inline void LED_pulse()
+{
+  if (ledKeepValue == 0) {
+    ledTargetValue += ledDirection;
+    LED_toggle();
+  }
+  ledKeepValue ++;
+
+  if (ledTargetValue > 240 || ledTargetValue < 10) {
+    ledDirection = -ledDirection;
+    ledTargetValue += ledDirection;
+  }
+
+  if (ledKeepValue == ledTargetValue) {
+    LED_toggle();
+  }
 }
 
 #if defined(CONFIG_USB) && defined(CONFIG_USB_DFU) && defined(CONFIG_DNX)
@@ -173,7 +214,7 @@ void usb_init(void)
  * FIXME: add usb vbus detection in loop
  */
 extern int dfu_reset;
-uint8_t dfu_busy;
+uint8_t dfu_busy = 0;
 void dnx(void)
 {
 	uint32_t saved_date, current_date;
@@ -183,22 +224,31 @@ void dnx(void)
 	if (usb_gpio == 0) {
 		return;
 	}
+
 	timeout_ticks = CONFIG_DNX_TIMEOUT_S * 32000;
 
-	//Force waiting update of quark and arc after bootupdater reboot
-	if (get_boot_target() == TARGET_FLASHING)
-		dfu_busy = 1;
-	else
-		dfu_busy = 0;
+	if (get_reset_reason() != RESET_HW) {
+		timeout_ticks = timeout_ticks / 10;
+	}
 
-	while (!dfu_reset &&
-	       (dfu_busy || ((saved_date + timeout_ticks) > current_date))) {
+	if (get_boot_target() == TARGET_FLASHING) {
+		timeout_ticks = timeout_ticks * 10;
+		dfu_busy = 1;
+	}
+
+	while (!dfu_reset && (dfu_busy || ((saved_date + timeout_ticks) > current_date))) {
 		current_date = get_32k_time();
 		poll_usb();
+		LED_pulse();
 	}
 	platform_usb_release();
 	if (dfu_reset)
 		reboot(TARGET_MAIN);
+
+	gpio_cfg_data_t pin_cfg_led = {
+		.gpio_type = GPIO_INPUT
+	};
+	soc_gpio_set_config(0, 26, &pin_cfg_led);
 
 #ifdef CONFIG_QUARK_SE_SWITCH_INTERNAL_OSCILLATOR
 	set_oscillator(OSC_INTERNAL);
