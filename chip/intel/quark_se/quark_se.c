@@ -227,13 +227,13 @@ void dnx(void)
 
 	timeout_ticks = CONFIG_DNX_TIMEOUT_S * 32000;
 
-	if (get_reset_reason() != RESET_HW) {
-		timeout_ticks = timeout_ticks / 10;
-	}
-
 	if (get_boot_target() == TARGET_FLASHING) {
 		timeout_ticks = timeout_ticks * 10;
 		dfu_busy = 1;
+	} else {
+		if (get_reset_reason() != RESET_HW) {
+			timeout_ticks = 0;
+		}
 	}
 
 	while (!dfu_reset && (dfu_busy || ((saved_date + timeout_ticks) > current_date))) {
