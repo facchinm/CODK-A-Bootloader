@@ -7,6 +7,7 @@ cflags-$(CONFIG_USB) 	+= -Wno-error -w
 # Use one of the following flags to compile the software in host-only or
 # device-only mode.
 cflags-$(CONFIG_USB)	+= -DDWC_DEVICE_ONLY
+cflags-$(CONFIG_USB)	+= -DDWC_SUSPEND_SUPPORT
 
 cflags-$(CONFIG_USB)	+= -I$(T)/firmware/bsp/bootable/bootloader/drivers/usb/dwc_3.10b/dwc_common_port/
 cflags-$(CONFIG_USB)	+= -I$(T)/firmware/bsp/bootable/bootloader/include/usb/
