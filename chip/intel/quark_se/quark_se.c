@@ -121,7 +121,7 @@ void soc_init(void)
 #endif
 
 #if defined(CONFIG_USB) && defined(CONFIG_USB_DFU) && defined(CONFIG_DNX)
-	usb_driver_os_dep->printk = printk;
+	//usb_driver_os_dep->printk = printk;
 	usb_driver_os_dep->alloc = balloc;
 	usb_driver_os_dep->free = bfree;
 

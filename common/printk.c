@@ -33,7 +33,7 @@
 //#include "print_services.h"
 #include "utils.h"
 
-#define DEBUG
+//#define DEBUG
 #if defined(DEBUG)
 
 typedef unsigned char bool;

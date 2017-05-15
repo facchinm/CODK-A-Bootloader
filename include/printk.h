@@ -33,7 +33,7 @@
 #define __PRINTK_H__
 
 #include <stdarg.h>
-#define DEBUG
+//#define DEBUG
 #if defined(DEBUG)
 #define PRINTK_BUFSIZ 256
 
