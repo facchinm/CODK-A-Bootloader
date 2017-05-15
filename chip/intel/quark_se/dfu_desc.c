@@ -35,8 +35,8 @@
 usb_device_descriptor_t dfu_device_desc = {
 	.bLength = USB_DEVICE_DESCRIPTOR_SIZE,
 	.bDescriptorType = 0x01,
-	.bcdUSB[0] = 0x10,
-	.bcdUSB[1] = 0x01,
+	.bcdUSB[0] = 0x00,
+	.bcdUSB[1] = 0x02,
 	.bDeviceClass = 0x00,
 	.bDeviceSubClass = 0x00,
 	.bDeviceProtocol = 0x00,
